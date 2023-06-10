@@ -1,170 +1,121 @@
 ﻿window.manageIndexedDB = {
     borrarDB: () => {
-        let _reqDelete = window.indexedDB.deleteDatabase('clientes');
-        _reqDelete.addEventListener('success', () => console.log('BD borrada con exito'));
-        _reqDelete.addEventListener('error', (err) => console.log('error al borrar bd...',err));
+        let reqDelete = window.indexedDB.deleteDatabase('clientes')
+        reqDelete.addEventListener('success', () => console.log('BD borrada con exito'))
+        reqDelete.addEventListener('error', (err) => console.log('Error al borrar bd', err))
     },
     devuelveCliente: (dotnetReference) => {
-        var _promiseCli = new Promise(
-            (resolve, reject) => {
-                let _reqDb = window.indexedDB.open('clientes');
-                _reqDb.addEventListener('upgradeneeded', (ev) => {
-                    let _db = _reqDb.result;
-                    let _store = _db.createObjectStore('infoClientes', { keyPath: 'nif' });
-                    _store.createIndex('nif', 'nif');
+        let promise = new Promise((resolve, reject) => {
+            let reqDb = window.indexedDB.open('clientes')
 
-                    let _store2 = _db.createObjectStore('tokens', { autoIncrement: true });
-                    let _store3 = _db.createObjectStore('itemsPedidoActual', { autoIncrement: true });
-                }); //cierre upgradeneeded DB
-                _reqDb.addEventListener('success', (ev) => {
-                    let _bd = _reqDb.result;
+                reqDb.addEventListener('upgradeneeded', (ev) => {
+                    let db = reqDb.result
+                    let store = db.createObjectStore('infoClientes', { keyPath: 'nif' })
+                    store.createIndex('nif', 'nif')
 
-                    let _selectReq = _bd.transaction(['infoClientes'], 'readonly').objectStore('infoClientes').getAll();
-                    _selectReq.addEventListener('success', (evt2) => {
-                        let _datos = _selectReq.result;
+                    db.createObjectStore('tokens', { autoIncrement: true })
+                    db.createObjectStore('itemsPedidoActual', { autoIncrement: true })
+                }) 
+                reqDb.addEventListener('success', (ev) => {
+                    let bd = reqDb.result
+                    let selectReq = bd.transaction(['infoClientes'], 'readonly').objectStore('infoClientes').getAll()
 
-                        console.log('datos recuperados...', _datos[0]);
-                        if (_datos[0] != undefined && _datos[0] != null) {
-                            resolve(_datos[0]);
+                    selectReq.addEventListener('success', (evt2) => {
+                        let datos = selectReq.result
+
+                        if (datos[0] != undefined && datos[0] != null) {
+                            resolve(datos[0])
                         } else {
-                            resolve(null);
+                            resolve(null)
                         }
-                    });
-                    _selectReq.addEventListener('error', (error) => {
-                        console.log('errores al recuperar sesion cliente..', error);
-                        resolve(null);
-                    });
-                }); //cierre success DB
-                _reqDb.addEventListener('error', (errDB) => {
-                    console.log('error al abrir bd-clientes en indexedDB....', errDB);
-                    resolve(null);
-                }); //cierre error DB
-
+                    })
+                    selectReq.addEventListener('error', (error) => { resolve(null) })
+                }) 
+                reqDb.addEventListener('error', (errDB) => { resolve(null) })
             }
-        ); //cierre promise
-
-        _promiseCli.then(datos => {
-            console.log('invocando desde js a metodo del servicio y devolviendole datos del cliente', datos);
-            dotnetReference.invokeMethodAsync('BlazorDBCallback', datos);
-            }
-        );
-
+        ) 
+        promise.then(datos => {
+            dotnetReference.invokeMethodAsync('BlazorDBCallback', datos)
+        })
     },
     checkIsLogged: () => {
-        let _reqDb = window.indexedDB.open('clientes');
-        _reqDb.addEventListener('success', (ev) => {
-            let _bd = _reqDb.result;
+        let reqDb = window.indexedDB.open('clientes')
+        reqDb.addEventListener('success', (ev) => {
+            let bd = reqDb.result
 
-            if (_bd.objectStoreNames.contains('infoClientes')) {
+            if (bd.objectStoreNames.contains('infoClientes')) {
 
-                let _selectReq = _bd.transaction(['infoClientes'], 'readonly').objectStore('infoClientes').getAll();
-                _selectReq.addEventListener('success', (evt2) => {
-                    console.log('exito en checkislooged transaction getall..', _selectReq.result);
+                let selectReq = bd.transaction(['infoClientes'], 'readonly').objectStore('infoClientes').getAll()
+                selectReq.addEventListener('success', (evt2) => {
 
-                    let _datos = _selectReq.result;
-                    if (_datos.length > 0) {
-                        return true;
+                    let datos = selectReq.result
+                    if (datos.length > 0) {
+                        return true
                     } else {
-                        return false;
+                        return false
                     }
-                });
-                _selectReq.addEventListener('error', (error) => {
-                    console.log('errores al recuperar sesion cliente..', error);
-                    return false;
-                });
-            } else {
-                return false; //no existe el objectstore infoClientes, no se ha logueado...
-            }
-        });
-        _reqDb.addEventListener('error', (errDB) => {
-            console.log('error al abrir bd-clientes en indexedDB....', errDB);
-            return false;
-        });
-
-
+                })
+                selectReq.addEventListener('error', (error) => { return false })
+            } 
+            return false 
+        })
+        reqDb.addEventListener('error', (errDB) => { return false })
     },
     almacenaClienteJWT: (datosCliente, token) => {
-        let _reqDb = window.indexedDB.open('clientes');
-        _reqDb.addEventListener('upgradeneeded', (ev) => {
-            let _db = _reqDb.result;
-            let _store = _db.createObjectStore('infoClientes', { keyPath: 'nif' });
-            _store.createIndex('nif', 'nif');
+        let reqDb = window.indexedDB.open('clientes')
+        reqDb.addEventListener('upgradeneeded', (ev) => {
+            let db = reqDb.result
+            let store = db.createObjectStore('infoClientes', { keyPath: 'nif' })
+            store.createIndex('nif', 'nif')
 
-            let _store2 = _db.createObjectStore('tokens', { autoIncrement: true });
-            let _store3 = _db.createObjectStore('itemsPedidoActual', { autoIncrement: true });
+            db.createObjectStore('tokens', { autoIncrement: true })
+            db.createObjectStore('itemsPedidoActual', { autoIncrement: true })
+        })
+        reqDb.addEventListener('success', (ev) => {
+            let db = _reqDb.result
+            let tx = db.transaction(['infoClientes','tokens'], 'readwrite')
 
-        });
+            let insertReq = tx.objectStore('infoClientes').add(datosCliente)
+            insertReq.addEventListener('success', (ev) => console.log('datos almacenados del cliente ok en indexedDB'))
+            insertReq.addEventListener('error', (err) => { throw err })
 
-        _reqDb.addEventListener('success', (ev) => {
-            //lanzo una transaccion sobre coleccion infoClientes para grabar documento "datosCliente"
-            // y sobre tokens para grabar documento IToken
-
-            let _db = _reqDb.result;
-            let _transac = _db.transaction(['infoClientes','tokens'], 'readwrite');
-
-            //1º operacion sobre transaccion...
-            let _insertReq = _transac.objectStore('infoClientes').add(datosCliente);
-            _insertReq.addEventListener('success', (ev) => console.log('datos almacenados del cliente ok en indexedDB'));
-            _insertReq.addEventListener('error', (err) => { throw err });
-
-            //2ºoperacion sobre transaccion...
-            let _insertJWT = _transac.objectStore('tokens').add(token);
-            _insertJWT.addEventListener('success', (ev) => console.log('datos almacenados del JWT ok en indexedDB'));
-            _insertJWT.addEventListener('error', (err) => { throw err });
-        });
+            let _insertJWT = tx.objectStore('tokens').add(token)
+            insertJWT.addEventListener('success', (ev) => console.log('datos almacenados del JWT ok en indexedDB'))
+            insertJWT.addEventListener('error', (err) => { throw err })
+        })
     },
     almacenaItemsPedido: (items) => {
-        let _reqDb = window.indexedDB.open('clientes');
-        _reqDb.addEventListener('success', (ev) => {
-            //lanzo una transaccion sobre coleccion infoClientes para grabar documento "datosCliente"
-            // y sobre tokens para grabar documento IToken
+        let reqDb = window.indexedDB.open('clientes')
+        reqDb.addEventListener('success', (ev) => {
+            let db = _reqDb.result
+            let tx = _db.transaction(['itemsPedidoActual'], 'readwrite')
 
-            let _db = _reqDb.result;
-            let _transac = _db.transaction(['itemsPedidoActual'], 'readwrite');
-
-            let _insertReq = _transac.objectStore('itemsPedidoActual').add(items);
-            _insertReq.addEventListener('success', (ev) => console.log('items pedido acutal almacenados del cliente ok en indexedDB'));
-            _insertReq.addEventListener('error', (err) => { throw err });
-        });
-
+            let insertReq = tx.objectStore('itemsPedidoActual').add(items)
+            insertReq.addEventListener('success', (ev) => console.log('items pedido acutal almacenados del cliente ok en indexedDB'))
+            insertReq.addEventListener('error', (err) => { throw err })
+        })
     },
     devuelveItemsPedido: (dotnetReference) => {
-        var _promiseCli = new Promise(
-            (resolve, reject) => {
-                let _reqDb = window.indexedDB.open('clientes');
+        let promise = new Promise((resolve, reject) => {
+            let reqDb = window.indexedDB.open('clientes')
  
-                _reqDb.addEventListener('success', (ev) => {
-                    let _bd = _reqDb.result;
+            reqDb.addEventListener('success', (ev) => {
+                let bd = reqDb.result
+                let selectReq = bd.transaction(['itemsPedidoActual'], 'readonly').objectStore('itemsPedidoActual').getAll()
+                    
+                selectReq.addEventListener('success', (evt2) => {
+                    let datos = selectReq.result
 
-                    let _selectReq = _bd.transaction(['itemsPedidoActual'], 'readonly').objectStore('itemsPedidoActual').getAll();
-                    _selectReq.addEventListener('success', (evt2) => {
-                        let _datos = _selectReq.result;
-
-                        console.log('datos recuperados itemsPedidoActual...', _datos[0]);
-                        if (_datos[0] != undefined && _datos[0] != null) {
-                            resolve(_datos[0]);
-                        } else {
-                            resolve(null);
-                        }
-                    });
-                    _selectReq.addEventListener('error', (error) => {
-                        console.log('errores al recuperar itemsPedidoActual..', error);
-                        resolve(null);
-                    });
-                });
-                _reqDb.addEventListener('error', (errDB) => {
-                    console.log('error al abrir bd-clientes en indexedDB....', errDB);
-                    resolve(null);
-                });
-
-            }
-        ); //cierre promise
-
-        _promiseCli.then(datos => {
-            console.log('invocando desde js a metodo del servicio y devolviendole items del pedido actual', datos);
-            dotnetReference.invokeMethodAsync('BlazorDBCallbackItems', datos);
-        }
-        );
-
+                    if (datos[0] != undefined && datos[0] != null) {
+                        resolve(_datos[0])
+                    } else {
+                        resolve(null)
+                    }
+                })
+                selectReq.addEventListener('error', (error) => { resolve(null) })
+            })
+            reqDb.addEventListener('error', (errDB) => { resolve(null) })
+        }) 
+        promise.then(datos => { dotnetReference.invokeMethodAsync('BlazorDBCallbackItems', datos) })
     }
 }
