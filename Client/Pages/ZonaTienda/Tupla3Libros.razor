@@ -1,0 +1,1 @@
+﻿<div class="card-group">    @foreach (Libro libro in this.ValorTupla3Libros)    {            <MiniLibro LibroAPintar="@libro"></MiniLibro>     }</div>@code {    [Parameter]    public List<Libro> ValorTupla3Libros { get; set; }}

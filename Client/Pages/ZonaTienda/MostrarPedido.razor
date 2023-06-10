@@ -1,0 +1,105 @@
+﻿@page "/Tienda/MostrarPedido"
+@inject IPedidoService _pedidoSrv
+@inject IRestService _petServicios
+@inject NavigationManager _navigateSrv
+@inject IStorageService _storageSrv
+
+<div>
+    <h3><b>RESUMEN DE LA CESTA:</b></h3>
+</div>
+<hr />
+@if (true)
+{
+<div class="container">
+    @foreach (Tuple<Libro,int> item in this.ListaItemsPedido)
+    {
+        <div class="row">
+            <div class="col">
+                    <MiniItemPedido ItemAPintar="@item" ModificarItemEvent="@ModificarItem"></MiniItemPedido>
+            </div>
+        </div>
+    }
+    <hr />
+    <div class="row">
+        <div class="col-6"></div>
+        <div class="col-4">
+            <h5><strong>Subtotal:</strong></h5>
+        </div>
+        <div class="col-2">
+            <h5><span style="color:red"> @this.SubTotal €</span></h5>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-6"></div>
+        <div class="col-4">
+            <h6><strong>Gastos de envio y gestion: </strong></h6>
+        </div>
+        <div class="col-2">
+            <h6><span style="color:red"> @this.GastosEnvio €</span></h6>
+        </div>
+    </div>s
+    <div class="row">
+        <div class="col-6"></div>
+        <div class="col-4">
+            <h4><strong>Total a pagar: </strong></h4>
+        </div>
+        <div class="col-2">
+            <h4><span style="color:red"><strong> @(this.SubTotal + this.GastosEnvio ) €</strong></span></h4>
+        </div>
+    </div>
+</div>
+<div class="row">
+    <div class="col-6"></div>
+    <div class="col-3">
+        <NavLink href="/Tienda/Libros/5" class="btn btn-primary">
+            <img src="/images/boton_SeguirComprando.png" />
+        </NavLink>
+    </div>
+    <div class="col-3">
+        <NavLink @onclick="@FinalizarPedido" class="btn btn-primary">
+            <img src="/images/BtonFinalizarPedido.png" />
+        </NavLink>
+    </div>
+</div>
+}
+
+
+@code {
+    List<Tuple<Libro,int>> ListaItemsPedido = new List<Tuple<Libro, int>>();
+    Decimal SubTotal = 0;
+    Decimal GastosEnvio = 2;
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        this._pedidoSrv
+            .DevolverItemsPedido()
+            .ForEach(async (ItemPedido item) => {
+                Libro _LibroRecuperado = await this._petServicios.DevolverLibro(item.LibroPedidoId);
+                this.ListaItemsPedido.Add(new Tuple<Libro, int>(_LibroRecuperado, item.Cantidad));
+                this.SubTotal += _LibroRecuperado.Precio * item.Cantidad;
+                StateHasChanged();
+            });
+    }
+
+    private void ModificarItem(Tuple<Libro, int> item) {
+        if (item.Item2 == 0)
+        {
+            this.ListaItemsPedido.Remove(this.ListaItemsPedido.Find((Tuple<Libro,int> itemLista)=>itemLista.Item1.LibroId==item.Item1.LibroId));
+            this._pedidoSrv.EliminarLibroDelCarrito(item.Item1);
+        }
+        else
+        {
+            int _pos = this.ListaItemsPedido.FindIndex((Tuple<Libro, int> itemLista) => itemLista.Item1.LibroId == item.Item1.LibroId);
+            this.ListaItemsPedido[_pos] = item;
+            this._pedidoSrv.ModificarLibroDelCarrito(item.Item1, item.Item2);
+        }
+        this.SubTotal = this.ListaItemsPedido.Sum((Tuple<Libro, int> item) => item.Item1.Precio * item.Item2);
+        StateHasChanged();
+    }
+
+    private async Task FinalizarPedido() {
+        await this._storageSrv.InsertaItemtsPedidoEnStorage(this.ListaItemsPedido);
+        this._navigateSrv.NavigateTo("/Tienda/FinalizarPedido");
+    }
+}

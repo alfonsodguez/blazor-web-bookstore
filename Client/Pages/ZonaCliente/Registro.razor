@@ -1,0 +1,156 @@
+﻿@page "/Cliente/Registro"
+@inject IJSRuntime _js
+@inject IRestService _rest
+@inject NavigationManager _navigate
+
+<div class="container">
+    <div class="row">
+        <div class="col">
+            <img src="/images/cabecera.png">
+        </div>
+    </div>
+    <div class="row">
+        <div class="col">
+            <h2><strong>Registro en agapea.com</strong></h2>
+            <p>Tienes tres opciones para registrarte en Agapea.com. Puedes hacerlo a través de las redes sociales Facebook o Google en 4 segundos.También puedes registrarte con nosotros en menos de 40 segundos. Tan solo rellena el formulario con tus datos.</p>
+            <hr>
+            <p>En ambos casos, recibirás un correo electrónico en tu cuenta con un enlace con el que confirmarás tus datos, y estarás disfrutando de nuestros servicios y ventajas. </p>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col">
+            <EditForm Model="@cliente" OnValidSubmit="@RegistrarCliente">
+                <DataAnnotationsValidator></DataAnnotationsValidator>
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">Datos de Mi Perfil...</h5>
+                        <div class="form-row">
+                            <div class="form-group col-md-6">
+                                <label for="inputLogin"><strong>Usuario (nickname)</strong></label>
+                                <input type="text" @bind-value="@cliente.CredencialesCliente.Login" class="form-control" id="inputLogin" placeholder="escribe aqui tu nick...">
+                                <ValidationMessage For="@( ()=> cliente.CredencialesCliente.Login )"></ValidationMessage>
+                            </div>
+                            <div class="form-group col-md-6">
+                                <label for="inputEmail"><strong>Correo Electronico</strong></label>
+                                <input type="email" @bind-value="@cliente.CredencialesCliente.Email" class="form-control" id="inputEmail" placeholder="escribe aqui tu email...">
+                                <ValidationMessage For="@( ()=>cliente.CredencialesCliente.Email )"></ValidationMessage>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group col-md-6">
+                                <label for="inputPassword"><strong>Escribe cual sera tu contraseña</strong></label>
+                                <input type="password" @bind-value="@cliente.CredencialesCliente.Password" class="form-control" id="inputPassword" placeholder="escribe tu password...">
+                                <ValidationMessage For="@( ()=> cliente.CredencialesCliente.Password)"></ValidationMessage>
+                            </div>
+                            <div class="form-group col-md-6">
+                                <label for="reinputPassword"><strong>Repite la contraseña</strong></label>
+                                <input type="password" class="form-control" id="reinputPassword" placeholder="Password">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card mt-3">
+                    <div class="card-body">
+                        <h5 class="card-title">Datos de Personales...</h5>
+                        <div class="form-row">
+                            <div class="form-group col-md-6">
+                                <label for="inputNombre"><strong>Mi Nombre es:</strong></label>
+                                <input type="text" @bind-value="@cliente.Nombre" class="form-control" id="inputNombre" placeholder="introduce tu nombre...">
+                                <ValidationMessage For="@( ()=> cliente.Nombre)"></ValidationMessage>
+                            </div>
+                            <div class="form-group col-md-6">
+                                <label for="inputApellidos"><strong>Mis Apellidos son:</strong></label>
+                                <input type="text" @bind-value="@cliente.Apellidos" class="form-control" id="inputApellidos" placeholder="introduce tus apellidos...">
+                                <ValidationMessage For="@( ()=> cliente.Apellidos)"></ValidationMessage>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group col-md-6">
+                                <label for="inputNIF"><strong>NIF:</strong></label>
+                                <input type="text" @bind-value="@cliente.NIF" class="form-control" id="inputNIF" placeholder="introduce tu NIF...">
+                                <ValidationMessage For="@( ()=> cliente.NIF)"></ValidationMessage>
+                            </div>
+                            <div class="form-group col-md-6">
+                                <label for="inputTelefono"><strong>un telefono de contacto:</strong></label>
+                                <input type="text" @bind-value="@cliente.TelefonoContacto" class="form-control" id="inputTelefono" placeholder="introduce telefono de contacto...">
+                                <ValidationMessage For="@( ()=> cliente.TelefonoContacto)"></ValidationMessage>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="inputAddress"><strong>Direccion de envio:</strong></label>
+                            <input type="text" @bind-value="@cliente.ListaDirecciones[0].Calle" class="form-control" id="inputAddress" placeholder="c/nombre calle, numero, piso-letra">
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group col-md-4">
+                                <label for="inputProvincia"><strong>Provincia</strong></label>
+                                <InputSelect id="inputProvincia" class="form-control" @bind-Value="@cliente.ListaDirecciones[0].CodPro" @oninput="@ListaProvinciasChanged">
+                                    <option value="0" selected>Elige provincia...</option>
+                                    @if (this.provincias != null)
+                                    {
+                                        @foreach (Provincia provincia in this.provincias)
+                                        {
+                                            <option value="@provincia.CodPro">@provincia.NombreProvincia</option>
+                                        }
+                                    }
+                                </InputSelect>
+                            </div>
+                            <div class="form-group col-md-6">
+                                <label for="inputLocalidad"><strong>Localidad</strong></label>
+                                <InputSelect id="inputLocalidad" class="form-control" disabled="@(this.provincias == null)" @bind-Value="@cliente.ListaDirecciones[0].CodMun">
+                                    <option value="0" selected>Elige localidad...</option>
+                                    @if (this.municipios != null)
+                                    {
+                                        @foreach (Municipio municipio in this.municipios)
+                                        {
+                                            <option value="@municipio.CodMun">@municipio.NombreMunicipio</option>
+                                        }
+                                    }
+                                </InputSelect>
+                            </div>
+                            <div class="form-group col-md-2">
+                                <label for="inputCP"><strong>CP</strong></label>
+                                <input type="text" @bind-value="@cliente.ListaDirecciones[0].CP" class="form-control" id="inputCP">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="checkCondicionesUso">
+                        <label class="form-check-label" for="checkCondicionesUso">
+                            Acepto las Condiciones de uso y nuestra Politica de Cookies
+                        </label>
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-primary">REGISTRARME</button>
+            </EditForm>
+        </div>
+    </div>
+</div>
+
+
+@code {
+    private Cliente cliente = new Cliente();
+    private List<Provincia> provincias;
+    private List<Municipio> municipios;
+
+    protected override async Task OnInitializedAsync()
+    {
+        this.cliente.ListaDirecciones.Add(new Direccion());
+        this.provincias = await this._rest.DevolverProvincias();
+    }
+
+    protected async Task ListaProvinciasChanged(ChangeEventArgs ev) 
+    {
+        this.municipios = await this._rest.DevolverMunicipios(System.Convert.ToInt32(ev.Value));
+    }
+
+    protected async Task RegistrarCliente()
+    {
+        RESTMessage respuesta = await this._rest.RegistrarCliente(this.cliente);
+        if(respuesta.Errores == null)
+        {
+            this._navigate.NavigateTo("/Cliente/Login");
+        }
+    }
+}

@@ -1,0 +1,227 @@
+﻿using bookstore.Server.Models;
+using bookstore.Server.Models.Interfaces;
+using bookstore.Shared;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Configuration;
+using Microsoft.IdentityModel.Tokens;
+using System;
+using System.Collections.Generic;
+using System.IdentityModel.Tokens.Jwt;
+using System.Linq;
+using System.Security.Claims;
+using System.Threading.Tasks;
+
+namespace bookstore.Server.Controllers
+{
+    [ApiController]
+    [Route("api/[controller]/[action]")]
+    public class RESTClienteServiceController : ControllerBase
+    {
+        private UserManager<ClienteIdentity> _userManager;
+        private SignInManager<ClienteIdentity> _siginManager;
+        private AplicacionDBContext _db;
+        private IClienteEmail _clienteEmail;
+        private IConfiguration _ficheroConfig;
+
+        public RESTClienteServiceController(UserManager<ClienteIdentity> userMangServiceDI, SignInManager<ClienteIdentity> signInMangServiceDI, AplicacionDBContext dbContextDI, IClienteEmail mailjetClienteDI, IConfiguration accesoAppsettingsDI)
+        {
+            this._userManager = userMangServiceDI;
+            this._siginManager = signInMangServiceDI;
+            this._db = dbContextDI;
+            this._clienteEmail = mailjetClienteDI;
+            this._ficheroConfig = accesoAppsettingsDI;
+        }
+
+
+        [HttpPost]
+        public async Task<RESTMessage> Login([FromBody] Cliente.Credenciales credenciales)
+        {
+            try
+            {
+                string email = credenciales.Email;
+                string password = credenciales.Password;
+
+                ClienteIdentity cliente = await this._userManager.FindByEmailAsync(email);
+                if (!cliente.EmailConfirmed)
+                {
+                    throw new Exception("Email sin confirmar");
+                }
+
+                Microsoft.AspNetCore.Identity.SignInResult checkLogin = await this._siginManager.PasswordSignInAsync(cliente, password, true, false);
+                if (checkLogin.Succeeded)
+                {
+                    Pedido newPedido = new Pedido
+                    {
+                        ClienteId = cliente.Id,
+                        ElementosPedido = null,
+                        EstadoPedido = "pedido nuevo",
+                        FechaPedido = DateTime.Now,
+                        GastosEnvio = 2,
+                        PedidoId = Guid.NewGuid().ToString(),
+                        SubTotalPedido = 0,
+                        TotalPedido = 0
+                    };
+
+                    List<Direccion> direcciones = this._db.Direcciones
+                        .Where((Direccion direccion) => direccion.ClienteId == cliente.Id)
+                        .ToList<Direccion>();
+
+                    Cliente.Credenciales publicCredenciales = new Cliente.Credenciales { Email = email, Login = cliente.UserName };
+
+                    Cliente infoCliente = new Cliente
+                    {
+                        Apellidos = cliente.Apellidos,
+                        NIF = cliente.NIF,
+                        Nombre = cliente.Nombre,
+                        TelefonoContacto = cliente.PhoneNumber,
+                        ClienteId = cliente.Id,
+                        CredencialesCliente = publicCredenciales,
+                        ImagenAvatar = cliente.ImagenAvatar ?? "",
+                        Descripcion = "",
+                        ListaDirecciones = direcciones,
+                        PedidoActual = newPedido,
+                        HistoricoPedidos = new List<Pedido>()
+                    };
+
+                    return new RESTMessage
+                    {
+                        Mensaje = "Login success",
+                        Errores = null,
+                        DatosCliente = infoCliente,
+                        Datos = null,
+                        Token = this.GenerarJWTsesion(cliente, credenciales)
+                    };
+                }
+                throw new Exception("Password incorrecta");
+            }
+            catch (Exception ex)
+            {
+                return new RESTMessage
+                {
+                    Mensaje = "Email invalido o sin confirmar o credenciales incorrectas",
+                    Errores = new List<String> { "Email invalido", "Emsail sin confirmar", "Credenciales incorrectas" },
+                    DatosCliente = null,
+                    Token = null,
+                    Datos = null
+                };
+            }
+        }
+
+        [HttpPost]
+        public async Task<RESTMessage> Registro([FromBody] Cliente datosCliente)
+        {
+            string password = datosCliente.CredencialesCliente.Password;
+            string email = datosCliente.CredencialesCliente.Email;
+
+            ClienteIdentity nuevoCliente = new ClienteIdentity
+            {
+                Nombre = datosCliente.Nombre,
+                Apellidos = datosCliente.Apellidos,
+                NIF = datosCliente.NIF,
+                Email = email,
+                UserName = datosCliente.CredencialesCliente.Login,
+                PhoneNumber = datosCliente.TelefonoContacto
+            };
+            IdentityResult registroCliente = await this._userManager.CreateAsync(nuevoCliente, password);
+
+            if (registroCliente.Succeeded)
+            {
+                ClienteIdentity cliente = await this._userManager.FindByEmailAsync(email);
+
+                Direccion direccion = new Direccion
+                {
+                    DireccionId = Guid.NewGuid().ToString(),
+                    Calle = datosCliente.ListaDirecciones[0].Calle,
+                    CP = datosCliente.ListaDirecciones[0].CP,
+                    CodPro = datosCliente.ListaDirecciones[0].CodPro,
+                    CodMun = datosCliente.ListaDirecciones[0].CodMun,
+                    EsPrincipal = datosCliente.ListaDirecciones[0].EsPrincipal,
+                    TipoDireccion = "Avd.",
+                    ClienteId = cliente.Id
+                };
+
+                this._db.Direcciones.Add(direccion);
+                await this._db.SaveChangesAsync();
+
+                await this.EnviarEmailRegistroAsync(cliente);
+
+                return new RESTMessage
+                {
+                    Mensaje = "Registro OK, se ha enviado Email de confirmacion",
+                    Errores = null,
+                    DatosCliente = null,
+                    Token = null,
+                    Datos = null
+                };
+            }
+
+            return new RESTMessage
+            {
+                Mensaje = "Fallo en el registro",
+                Errores = new List<String> { "Fallo en el registro, Fallo en servidor al almacenar los datos del cliente" },
+                DatosCliente = null,
+                Token = null,
+                Datos = null
+            };
+        }
+
+        [HttpGet(Name = "activarCuenta")]
+        public async Task<IActionResult> ConfirmarRegistro([FromQuery] String idCliente, [FromQuery] String token)
+        {
+            ClienteIdentity cliente = await this._userManager.FindByIdAsync(idCliente);
+            IdentityResult comprobacionToken = await this._userManager.ConfirmEmailAsync(cliente, token);
+
+            if (comprobacionToken.Succeeded)
+            {
+                string urlLogin = "https://localhost:44351/Cliente/Login";
+                return Redirect(urlLogin);
+            }
+
+            return Ok(new RESTMessage
+            {
+                Mensaje = "Confirmacion Email fallida",
+                Errores = new List<String> { "Activación del email por Identity fallida" },
+                Datos = null,
+                DatosCliente = null,
+                Token = null
+            });
+        }
+
+
+        private String GenerarJWTsesion(ClienteIdentity cliente, Cliente.Credenciales credenciales)
+        {
+            SecurityKey claveFirma = new SymmetricSecurityKey(System.Text.Encoding.UTF8.GetBytes(this._ficheroConfig["JWT:clave"]));
+
+            JwtSecurityToken token = new JwtSecurityToken(
+                issuer: this._ficheroConfig["JWT:issuer"],
+                audience: null,
+                claims: new List<Claim>
+                {
+                    new Claim("Nombre", cliente.Nombre),
+                    new Claim("Apellidos", cliente.Apellidos),
+                    new Claim("NIF", cliente.NIF),
+                    new Claim("ClienteId", cliente.Id),
+                    new Claim("Email", credenciales.Email)
+                },
+                expires: DateTime.Now.AddHours(2),
+                signingCredentials: new Microsoft.IdentityModel.Tokens.SigningCredentials(claveFirma, SecurityAlgorithms.HmacSha256)
+            );
+
+            return new JwtSecurityTokenHandler().WriteToken(token);
+        }
+
+        private async Task EnviarEmailRegistroAsync(ClienteIdentity cliente)
+        {
+            string token = await this._userManager.GenerateEmailConfirmationTokenAsync(cliente);
+            string urlEmail = Url.RouteUrl("activarCuenta", new { idcliente = cliente.Id, token = token }, "https", "localhost:44351");
+            string mensaje = $@"
+                        <h3><strong>Se ha registrado correctamente en Agapea.com</strong></h3>
+                        <br>Haz click en <a href='{urlEmail}'>{urlEmail}</a> para activar tu cuenta";
+            string destinatario = cliente.Email;
+            string asunto = "Confirmacion de registro en Agapea.com";
+
+            this._clienteEmail.EnviarEmail(destinatario, asunto, mensaje, null);
+        }
+    }
+}

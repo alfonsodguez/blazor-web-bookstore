@@ -1,0 +1,138 @@
+﻿@page "/Tienda/FinalizarPedido"
+@inject IStorageService _storageSrv
+@inject NavigationManager _navigate
+@inject IPedidoService _pedidoSrv
+@inject IRestService _rest
+
+@if (this.cliente != null)
+{
+    <div class="container">
+        <div class="row">
+            <div class="col">
+                <h3><strong>Pedido Finalizado con Id: @this.cliente.PedidoActual.PedidoId</strong></h3>
+            </div>
+        </div>
+        <hr />
+        <div class="row">
+            <div class="col">
+                <p>Estimado @this.cliente.Nombre, @this.cliente.Apellidos</p>
+                <p>Muchas gracias por realizar el pedido en nuestra web. Los datos de su pedido van a ser procesados para su envio.</p>
+                <p>Para conocer el estado de su pedido consulte su PANEL DEL CLIENTE, donde podra realizar las modificaciones de su interes.</p>
+            </div>
+        </div>
+        <hr />
+        @if (this.DireccionActual != null)
+        {
+            <div class="row">
+                <div class="col">
+                    <h3><strong>Direccion de envio:</strong></h3>
+                    <p>Direccion: @this.DireccionActual.Calle, CP: @this.DireccionActual.CP</p>
+                    <p>Localidad: @this.DireccionActual.CodMun, Provincia: @this.DireccionActual.CodPro</p>
+                </div>
+            </div>
+            <hr />
+        }
+        @if (this.ListaItemsPedido != null)
+        {
+            <div>
+                <div class="row">
+                    <div class="col">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th scope="col">Titulo</th>
+                                    <th scope="col">Editorial</th>
+                                    <th scope="col">Autor(es)</th>
+                                    <th scope="col">Precio</th>
+                                    <th scope="col">Cantidad</th>
+                                    <th scope="col">Importe</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                            @foreach (Tuple<Libro, int> itemPedido in this.ListaItemsPedido)
+                            {
+                                <tr>
+                                    <th scope="row">@itemPedido.Item1.Titulo</th>
+                                    <td>@itemPedido.Item1.Editorial</td>
+                                    <td>@itemPedido.Item1.Autor</td>
+                                    <td>@itemPedido.Item1.Precio €</td>
+                                    <td>@itemPedido.Item2</td>
+                                    <td>@(itemPedido.Item1.Precio * itemPedido.Item2)</td>
+                                </tr>
+                            }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <hr />
+                <div class="row">
+                    <div class="col-6"></div>
+                    <div class="col-4">
+                        <h5><strong>Subtotal:</strong></h5>
+                    </div>
+                    <div class="col-2">
+                        <h5><span style="color:red"> @this.cliente.PedidoActual.SubTotalPedido €</span></h5>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-6"></div>
+                    <div class="col-4">
+                        <h6><strong>Gastos de envio y gestion: </strong></h6>
+                    </div>
+                    <div class="col-2">
+                        <h6><span style="color:red"> @this.cliente.PedidoActual.GastosEnvio €</span></h6>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-6"></div>
+                    <div class="col-4">
+                        <h4><strong>Total a pagar: </strong></h4>
+                    </div>
+                    <div class="col-2">
+                        <h4><span style="color:red"><strong> @(this.cliente.PedidoActual.SubTotalPedido + this.cliente.PedidoActual.GastosEnvio ) €</strong></span></h4>
+                    </div>
+                </div>
+            </div>
+            <hr />
+        }
+        <div class="row">
+            <div class="col">
+                <button type="button" class="btn btn-primary" @onclick="@IrPanel">IR A PANEL DEL CLIENTE</button>
+            </div>
+        </div>
+    </div>
+}
+
+
+@code {
+    [CascadingParameter(Name ="Cliente")]
+    public Cliente cliente { get; set; }
+
+    Direccion DireccionActual;
+    List<Tuple<Libro, int>> ListaItemsPedido = new List<Tuple<Libro, int>>();
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        this._storageSrv.ItemsRecuperadoIndexedDBEvent += this.RecuperaItemsPedidoFromStorage;
+        await this._storageSrv.DevuelveItemsPedidoDelStorage();
+    }
+
+    protected override void OnParametersSet()
+    {
+        this.DireccionActual = this.cliente.ListaDirecciones.Where((Direccion direc) => direc.EsPrincipal == true).Single<Direccion>();
+        StateHasChanged();
+    }
+
+    private void RecuperaItemsPedidoFromStorage(object sender, List<Tuple<Libro, int>> lista)
+    {
+        this.ListaItemsPedido = lista;
+        this.cliente.PedidoActual.SubTotalPedido = lista.Sum((Tuple<Libro, int> itemPedido) => itemPedido.Item1.Precio * itemPedido.Item2);
+        StateHasChanged();
+    }
+
+    private void IrPanel() 
+    {
+        this._navigate.NavigateTo("/Cliente/Panel/MiPanelInicio");
+    }
+}

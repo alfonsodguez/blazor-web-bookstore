@@ -1,0 +1,49 @@
+﻿@page "/Cliente/Panel/MisDatosEnvio"
+@inject NavigationManager navigate
+@inject IJSRuntime _js
+
+<div class="container">
+    <div class="row">
+        <div class="col">
+            <h3><strong>Mis datos de envio y facturacion</strong></h3>
+            <p><small>Guarda todas tus direcciones de envío y elige la que usarás por defecto donde llegarán tus pedidos.</small> </p>
+        </div>
+    </div>
+    <hr />
+    <div class="row" style="background-color:rgb(250,250,250);">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-4">
+                    <h4>Direcciones de envio</h4>
+                </div>
+                <div class="col-md-4"></div>
+                <div class="col-md-4">
+                    <button @ref="@nuevaDir" @onclick="@(()=>this.Modal.Open())" type="button" class="btn btn-primary">CREAR NUEVA DIRECCION</button>
+                    <FormModalCrearDireccion @ref="@Modal"></FormModalCrearDireccion>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col">
+                    <p><small>Éstas son las direcciones a las que puedes hacer tus envíos. Las direcciones de envío serán las que elijas mientras que la facturación será la misma en todas las direcciones</small></p>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <table class="table">
+            <thead>
+                <th scope="col">(Es Principal) Calle,CP, Localidad y Prov.</th>
+                <th scope="col">Editar Direc.</th>
+                <th scope="col">Eliminar Direc.</th>
+            </thead>
+            <tbody>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+
+@code {
+    private ElementReference nuevaDir; 
+    private FormModalCrearDireccion Modal { get; set; }
+}

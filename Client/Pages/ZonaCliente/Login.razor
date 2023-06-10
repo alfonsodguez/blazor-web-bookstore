@@ -1,0 +1,67 @@
+﻿@page "/Cliente/Login"
+@inject IJSRuntime _js
+@inject IRestService _rest
+@inject IStorageService _storage
+@inject NavigationManager navigate
+
+<div class="container">
+    <div class="row">
+        <div class="col">
+            <img src="/images/cabecera.png">
+        </div>
+    </div>
+    <div class="row">
+        <div class="col">
+            <h3><strong>Acceso a agapea.com</strong></h3>
+            <p>Para poder disfrutar de algunos de nuestros servicios, debes estar registrado. Registrarse en apapea.com es rapido y facil y GRATIS!</p>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-4">
+            <div>
+                <p><h3>Identificate con...</h3></p><br />
+                <a href=""><img src="/images/boton_Google.png" /></a>
+                <small>o bien con tu usuario de agapea</small>
+            </div>
+            <EditForm Model="this.credenciales" OnSubmit="@LoginCliente">
+                <DataAnnotationsValidator></DataAnnotationsValidator>
+                <div class="form-group">
+                    <label for="email"><strong>Correo Electronico:</strong></label>
+                    <input id="email" type="email" @bind-value="@this.credenciales.Email" class="form-control" placeholder="inicia sesion con tu email" />
+                    <ValidationMessage For="@(()=>this.credenciales.Email)"></ValidationMessage>
+                </div>
+                <div class="form-group">
+                    <label for="password"><strong>Contraseña:</strong></label>
+                    <input id="password" type="password" @bind-value="@this.credenciales.Password" class="form-control" placeholder="introduce tu password" />
+                    <ValidationMessage For="@(()=>this.credenciales.Password)"></ValidationMessage>
+                </div>
+                <button type="submit" class="btn btn-primary" style="border: 0px; background:none"><img src="/images/BotonLoginUsuario.png" /></button>
+            </EditForm>
+        </div>
+        <div class="col-8">
+            <img src="/images/formLogin.png" />
+            <a href="https://localhost:44351/Cliente/Registro"><img src="/images/BotonRegistrarUsuario.png" /></a>
+        </div>
+    </div>
+</div>
+
+@code {
+    [CascadingParameter(Name = "Cliente")]
+    public Cliente cliente { get; set; }
+
+    private Cliente.Credenciales credenciales = new Cliente.Credenciales();
+
+
+    public async Task LoginCliente()
+    {
+        await this._storage.DeleteIndexedDB();
+
+        RESTMessage checkLogin = await this._rest.LoginCliente(this.credenciales);
+        if (checkLogin.Mensaje == "Login success")
+        {
+            await this._storage.InsertaClienteJWTEnStorage(checkLogin.DatosCliente, checkLogin.Token);
+            this.cliente = checkLogin.DatosCliente;
+            this.navigate.NavigateTo("/Tienda/Libros/5");
+        }
+    }
+}

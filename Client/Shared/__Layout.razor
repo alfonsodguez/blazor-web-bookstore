@@ -1,0 +1,123 @@
+﻿@inherits LayoutComponentBase
+@using bookstore.Client.Servicios
+@using bookstore.Shared
+@inject IStorageService _storage
+@inject NavigationManager _navigate
+
+<CascadingValue Value="@ClienteLogged" Name="Cliente">
+    <header>
+        <div class="container">
+            <div class="row">
+                <div class="col-9" style="background-color:black"></div>
+                <div class="col-3" style="background-color:black">
+                    <div class="btn-group btn-group-sm" role="group" aria-label="Basic example">
+                        <a href="#" class="btn btn-dark btn-sm">
+                            <img src="/images/botonMINIcontacto.png">
+                        </a>
+                        @if (this.ClienteLogged != null)
+                        {
+                            <a @onclick="@(()=>this._navigate.NavigateTo(@"/Cliente/Panel/MiPerfil"))" class="btn btn-dark btn-sm">
+                                <span style="color:white;">Bienvenido: @this.ClienteLogged.Nombre,@this.ClienteLogged.Apellidos (@this.ClienteLogged.CredencialesCliente.Email)</span> 
+                            </a>
+                        }
+                        else
+                        {
+                            <a @onclick="@(()=>this._navigate.NavigateTo(@"/Cliente/Login"))" class="btn btn-dark btn-sm">
+                                <img src="/images/botonMINIlogin.png">
+                            </a>
+                        }
+                    </div>
+                </div>
+            </div>
+            <div class="row" style="background-color:rgb(237,237,237)">
+                <div class="col-md-4">
+                    <img src="/images/logo_Agapea_layout.png" />
+                </div>
+                <div class="col-md-6">
+                    <form method="post" asp-controller="Tienda" asp-action="BuscarLibros">
+                        <div class="input-group mb-3">
+                            <input type="text" name="cajatext" class="form-control" placeholder="Buscar por libro,autor,isbn..." aria-label="Buscar por libro,autor,isbn..." aria-describedby="botonBuscar">
+                            <div class="input-group-append">
+                                <a class="btn btn-outline-primary" id="botonBuscar" onclick="javascript:document.forms[0].submit()">
+                                    <img src="/images/boton_BuscarLibros.png" />
+                                </a>
+                            </div>
+                        </div>
+                        <div class="input-group mb-3">
+                            <div class="form-check-inline">
+                                <label class="form-check-label">
+                                    <input type="radio" class="form-check-input" name="optradio" value="Titulo">Titulo
+                                </label>
+                            </div>
+                            <div class="form-check-inline">
+                                <label class="form-check-label">
+                                    <input type="radio" class="form-check-input" name="optradio" value="ISBN10">ISBN
+                                </label>
+                            </div>
+                            <div class="form-check-inline">
+                                <label class="form-check-label">
+                                    <input type="radio" class="form-check-input" name="optradio" value="Autor">Autor
+                                </label>
+                            </div>
+                            <div class="form-check-inline">
+                                <label class="form-check-label">
+                                    <input type="radio" class="form-check-input" name="optradio" value="Editorial">Editorial
+                                </label>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="col-md-2">
+                    <a @onclick="@(()=>this._navigate.NavigateTo(@"/Tienda/MostrarPedido"))" class="btn btn-light">
+                        <img src="/images/boton_mini_carrito.png" />
+                        <span class="badge badge-danger">0</span>
+                        <small>Total: @(this.ClienteLogged != null ? this.ClienteLogged.PedidoActual.TotalPedido : 0 )</small>
+                        <img src="/images/boton_flecha_minicarrito.png" />
+                    </a>
+                </div>
+            </div>
+        </div>
+    </header>
+    <div class="container">
+        <div class="row">
+            <div class="col-2">
+                @if (!this._navigate.Uri.Contains("/Cliente/"))
+                {
+                    <ListaPanelMaterias></ListaPanelMaterias>
+                }
+                else if (this._navigate.Uri.Contains("/Cliente/Panel/"))
+                {
+                    <ListaPanelCliente></ListaPanelCliente>
+                }
+            </div>
+            <div class="col-10">
+                @Body
+            </div>
+        </div>
+    </div>
+    <footer class="border-top footer text-muted">
+        <div class="container">
+            <div class="row">
+                <div class="col">
+                    <small>&copy;  Agapea CLASE S.A. 2020. Reservados todos los derechos </small>
+                </div>
+            </div>
+        </div>
+    </footer>
+</CascadingValue>
+
+@code {
+    public Cliente ClienteLogged { get; set; }
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        this._storage.ClienteRecuperadoIndexedDBEvent += this.RecibeCliente;
+        await this._storage.DevuelveClienteDelStorage();
+    }
+
+    private void RecibeCliente(object sender, Cliente cliente)
+    {
+        this.ClienteLogged = cliente;
+    }
+}

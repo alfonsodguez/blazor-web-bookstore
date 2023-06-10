@@ -1,0 +1,57 @@
+﻿<table class="table table-borderless">
+    <tr>
+        <td rowspan="2">
+            <img src="/images/imagenLibro.png" />
+        </td>
+        <td><label><h4>@this.ItemAPintar.Item1.Titulo</h4></label></td>
+        <td>
+            <button type="button" @onclick="@(()=>ModificaCantidad("borrar"))" class="btn btn-light"><strong style="color:red">X</strong></button>
+        </td>
+    </tr>
+    <tr>
+        <td>
+            <button type="button" class="btn btn-primary" @onclick="@(()=>ModificaCantidad("resta"))"> - </button>
+            <label>@this.ItemAPintar.Item2</label>
+            <button type="button" class="btn btn-primary" @onclick="@(()=>ModificaCantidad("suma"))"> + </button>
+            <label>x</label>
+            <label style="color:red">@this.ItemAPintar.Item1.Precio €</label>
+        </td>
+        <td>
+            <label style="color:red">@(this.ItemAPintar.Item1.Precio * this.ItemAPintar.Item2) €</label>
+        </td>
+    </tr>
+</table>
+
+
+@code {
+    [Parameter]
+    public Tuple<Libro, int> ItemAPintar { get; set; }
+    [Parameter]
+    public EventCallback<Tuple<Libro, int>> ModificarItemEvent { get; set; }
+
+
+    private async Task ModificaCantidad(String operacion)
+    {
+        int cantidad = this.ItemAPintar.Item2;
+        switch (operacion)
+        {
+            case "borrar":
+                cantidad = 0;
+                break;
+            case "suma":
+                cantidad++;
+                break;
+            case "resta":
+                if (cantidad > 0)
+                {
+                    cantidad++;
+                }
+                else
+                {
+                    cantidad = 0;
+                }
+                break;
+        }
+        await this.ModificarItemEvent.InvokeAsync(new Tuple<Libro, int>(this.ItemAPintar.Item1, cantidad));
+    }
+}

@@ -1,0 +1,109 @@
+﻿<div class="modal  @ModalClass" id="exampleModal" tabindex="-1" role="dialog" style="display:@ModalDisplay">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel">Datos personales, de envío y de facturación</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close" @onclick="@(()=>this.Close())">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="container">
+                    <div class="row">
+                        <div class="col">
+                            <p><small>Si desea que enviemos el pedido a una dirección distinta de la de facturación, modifique los campos a continuación según proceda (los datos con * no podrán ser modificados):</small></p>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col">
+                            <h3><strong>Datos de envío</strong></h3>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col">
+                            <EditForm Model="@this.nuevaDireccion" OnValidSubmit="@crearDireccion">
+                                <div class="form-row">
+                                    <div class="form-group col-md-9">
+                                        <label for="direnvio">Direccion de envio:</label>
+                                        <input type="text" @bind-value="@this.nuevaDireccion.Calle" class="form-control" id="direnvio" placeholder="calle,avenida....para enviar">
+                                    </div>
+                                    <div class="form-group col-md-3">
+                                        <label for="cp">CP:</label>
+                                        <input type="text" class="form-control" @bind-value="@this.nuevaDireccion.CP" id="cp" placeholder="cod.postal">
+                                    </div>
+                                </div>
+                                <div class="form-row">
+                                    <div class="form-group col-md-6">
+                                        <label for="inputProvincia"><strong>Provincia</strong></label>
+                                        <InputSelect id="inputProvincia" @bind-Value="this.nuevaDireccion.CodPro" @oninput="@OnListaProvinciaValueChanged" class="form-control">
+                                            <option value="0" selected>Elige provincia...</option>
+                                            @if (this.provincias != null)
+                                            {
+                                                @foreach (Provincia provincias in this.provincias)
+                                                {
+                                                    <option value="@provincias.CodPro">@provincias.NombreProvincia</option>
+                                                }
+
+                                            }
+                                        </InputSelect>
+                                    </div>
+                                    <div class="form-group col-md-6">
+                                        <label for="inputLocalidad"><strong>Localidad</strong></label>
+                                        <InputSelect disabled="@(this.provincias == null)" id="inputLocalidad" @bind-Value="@this.nuevaDireccion.CodMun" class="form-control">
+                                            <option value="0" selected>Elige localidad...</option>
+                                            @if (this.municipios != null)
+                                            {
+                                                @foreach (Municipio municipio in this.municipios)
+                                                {
+                                                    <option value="@municipio.CodMun.ToString()">@municipio.NombreMunicipio</option>
+                                                }
+
+                                            }
+                                        </InputSelect>
+                                    </div>
+                                </div>
+                                <div class="form-row">
+                                    <div class="form-group col-md-6">
+                                        <button type="submit" id="crearDireccion" class="btn btn-secondary" data-dismiss="modal">Crear Direccion</button>
+                                    </div>
+                                </div>
+                            </EditForm>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+@code {
+    public string ModalDisplay = "none;";
+    public string ModalClass = "";
+    public Direccion nuevaDireccion { get; set; } = new Direccion();
+    private List<Provincia> provincias;
+    private List<Municipio> municipios;
+
+    protected async Task OnListaProvinciaValueChanged(ChangeEventArgs ev) {}
+
+    protected async Task crearDireccion()
+    {
+        await this.Close();
+    }
+
+    public async Task Open()
+    {
+        ModalDisplay = "block;";
+        await Task.Delay(100);
+        ModalClass = "Show";
+        StateHasChanged();
+    }
+
+    public async Task Close()
+    {
+        ModalDisplay = "none";
+        await Task.Delay(250);
+        ModalClass = "";
+        StateHasChanged();
+    }
+}

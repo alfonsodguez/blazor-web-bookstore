@@ -1,0 +1,37 @@
+﻿@inject NavigationManager navigate
+@inject IPedidoService pedidoSrv
+
+<div class="card mb-3">
+    <div class="row g-0">
+        <div class="col-md-4">
+            <img src="/images/imagenLibro.png" class="card-img" />
+            <button @onclick="@ComprarLibro"class="btn btn-primary-sm"><img src="/images/BotonComprar.png" /></button>
+        </div>
+
+        <div class="col-md-8">
+            <div class="card-body">
+                <h5 class="card-title">
+                    <NavLink href="/Tienda/MostrarLibro/${this.LibroAPintar.ISBN10}">
+                        @this.LibroAPintar.Titulo
+                    </NavLink>
+                </h5>
+                <p class="card-text">@this.LibroAPintar.Autor</p>
+                <p class="card-text">@this.LibroAPintar.Editorial</p>
+                <p class="card-text"><small class="text-muted">@this.LibroAPintar.NumeroPaginas paginas</small></p>
+                <p class="card-text"><b>@this.LibroAPintar.Precio €</b></p>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+@code {
+    [Parameter]
+    public Libro LibroAPintar { get; set; }
+
+    protected void ComprarLibro()
+    {
+        this.pedidoSrv.AñadirLibroAlCarrito(this.LibroAPintar, 1);
+        this.navigate.NavigateTo("/Tienda/MostrarPedido/");
+    }
+}
