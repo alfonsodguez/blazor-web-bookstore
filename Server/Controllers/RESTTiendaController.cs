@@ -24,7 +24,7 @@ namespace bookstore.Server.Controllers
         {
             try
             {
-                List<Libro> libros = this._db.Libros.Where((Libro libro) => libro.IdMateria == idCategoria).ToList<Libro>();
+                List<Libro> libros = this._db.Libros.Where((Libro libro) => libro.MateriaId == idCategoria).ToList<Libro>();
 
                 return new RESTMessage
                 {
@@ -51,7 +51,7 @@ namespace bookstore.Server.Controllers
         {
             try
             {
-                List<Materia> materias = this._db.Materias.Where((Materia materia) => materia.IdMateriaPadre == idMateria).ToList<Materia>();
+                List<Materia> materias = this._db.Materias.Where((Materia materia) => materia.MateriaPadreId == idMateria).ToList<Materia>();
 
                 return new RESTMessage
                 {
@@ -74,7 +74,7 @@ namespace bookstore.Server.Controllers
         }
 
         [HttpGet]
-        public RESTMessage RecuperaLibro([FromQuery] String idLibro)
+        public RESTMessage DevolverLibro([FromQuery] String idLibro)
         {
             try
             {
@@ -95,7 +95,7 @@ namespace bookstore.Server.Controllers
                     Datos = null,
                     DatosCliente = null,
                     Errores = new List<String> { ex.Message },
-                    Mensaje = "Error al recuperar materias con id: " + idLibro
+                    Mensaje = "Error al recuperar libro con id: " + idLibro
                 };
             }
         }

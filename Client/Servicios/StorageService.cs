@@ -11,7 +11,7 @@ namespace bookstore.Client.Servicios
         private IJSRuntime _js;
         public DotNetObjectReference<StorageService> StorageSrvReference;
         public event EventHandler<Cliente> ClienteRecuperadoIndexedDBEvent;
-        public event EventHandler<List<Tuple<Libro, int>>> ItemsRecuperadoIndexedDBEvent;
+        public event EventHandler<List<Tuple<Libro, int>>> ItemsRecuperadosIndexedDBEvent;
 
 
         public StorageService(IJSRuntime javascriptDI)
@@ -20,10 +20,29 @@ namespace bookstore.Client.Servicios
             this._js = javascriptDI;
         }
 
-
-        public async Task DevuelveClienteDelStorage()
+        public async Task EliminarIndexedDB()
         {
-            await this._js.InvokeAsync<Cliente>("manageIndexedDB.devuelveCliente", this.StorageSrvReference);
+            await this._js.InvokeVoidAsync("manageIndexedDB.borrarIndexedDB");
+        }
+
+        public async Task InsertarClienteJWTEnStorage(Cliente cliente, string jwt)
+        {
+            await this._js.InvokeVoidAsync("manageIndexedDB.almacenarClienteJWT", cliente, jwt);
+        }
+
+        public async Task<bool> EstarClienteLogueado()
+        {
+            return await this._js.InvokeAsync<bool>("manageIndexedDB.checkIsLogged");
+        }
+
+        public async Task InsertarItemtsPedidoEnStorage(List<Tuple<Libro, int>> listaItems)
+        {
+            await this._js.InvokeVoidAsync("manageIndexedDB.almacenarItemsPedido", listaItems);
+        }
+
+        public async Task DevolverClienteDelStorage()
+        {
+            await this._js.InvokeAsync<Cliente>("manageIndexedDB.devolverCliente", this.StorageSrvReference);
         }
 
         [JSInvokable("BlazorDBCallback")]
@@ -32,35 +51,16 @@ namespace bookstore.Client.Servicios
             this.ClienteRecuperadoIndexedDBEvent.Invoke(this, cliente);
         }
 
-        public async Task DevuelveItemsPedidoDelStorage()
+        public async Task DevolverItemsPedidoDelStorage()
         {
-            await this._js.InvokeAsync<Cliente>("manageIndexedDB.devuelveItemsPedido", this.StorageSrvReference);
+            await this._js.InvokeAsync<Cliente>("manageIndexedDB.devolverItemsPedido", this.StorageSrvReference);
         }
 
         [JSInvokable("BlazorDBCallbackItemsPedido")]
         public void CalledFromJSItems(List<Tuple<Libro, int>> lista)
         {
-            this.ItemsRecuperadoIndexedDBEvent.Invoke(this, lista);
+            this.ItemsRecuperadosIndexedDBEvent.Invoke(this, lista);
         }
 
-        public async Task DeleteIndexedDB()
-        {
-            await this._js.InvokeVoidAsync("manageIndexedDB.borrarDB");
-        }
-
-        public async Task InsertaClienteJWTEnStorage(Cliente cliente, string jwt)
-        {
-            await this._js.InvokeVoidAsync("manageIndexedDB.almacenaClienteJWT", cliente, jwt);
-        }
-
-        public async Task<bool> EstaClienteLogueado()
-        {
-            return await this._js.InvokeAsync<bool>("manageIndexedDB.checkIsLogged");
-        }
-
-        public async Task InsertaItemtsPedidoEnStorage(List<Tuple<Libro, int>> listaItems)
-        {
-            await this._js.InvokeVoidAsync("manageIndexedDB.almacenaItemsPedido", listaItems);
-        }
     }
 }

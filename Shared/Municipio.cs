@@ -5,9 +5,9 @@ namespace bookstore.Shared
     public class Municipio
     {
 
-        public int CodPro { get; set; }
-        public int CodMun { get; set; }
+        public int CodProvincia { get; set; }
+        public int CodMunicipio { get; set; }
         #nullable enable
-        public String? NombreMunicipio { get; set; }
+        public String? Nombre { get; set; }
     }
 }

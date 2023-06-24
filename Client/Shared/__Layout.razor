@@ -17,7 +17,7 @@
                         @if (this.ClienteLogged != null)
                         {
                             <a @onclick="@(()=>this._navigate.NavigateTo(@"/Cliente/Panel/MiPerfil"))" class="btn btn-dark btn-sm">
-                                <span style="color:white;">Bienvenido: @this.ClienteLogged.Nombre,@this.ClienteLogged.Apellidos (@this.ClienteLogged.CredencialesCliente.Email)</span> 
+                                <span style="color:white;">Bienvenido: @this.ClienteLogged.Nombre, @this.ClienteLogged.Apellidos (@this.ClienteLogged.CredencialesCliente.Email)</span> 
                             </a>
                         }
                         else
@@ -71,7 +71,7 @@
                     <a @onclick="@(()=>this._navigate.NavigateTo(@"/Tienda/MostrarPedido"))" class="btn btn-light">
                         <img src="/images/boton_mini_carrito.png" />
                         <span class="badge badge-danger">0</span>
-                        <small>Total: @(this.ClienteLogged != null ? this.ClienteLogged.PedidoActual.TotalPedido : 0 )</small>
+                        <small>Total: @(this.ClienteLogged != null ? this.ClienteLogged.PedidoActual.Total : 0 )</small>
                         <img src="/images/boton_flecha_minicarrito.png" />
                     </a>
                 </div>
@@ -112,11 +112,11 @@
 
     protected override async Task OnInitializedAsync()
     {
-        this._storage.ClienteRecuperadoIndexedDBEvent += this.RecibeCliente;
-        await this._storage.DevuelveClienteDelStorage();
+        this._storage.ClienteRecuperadoIndexedDBEvent += this.RecibirCliente;
+        await this._storage.DevolverClienteDelStorage();
     }
 
-    private void RecibeCliente(object sender, Cliente cliente)
+    private void RecibirCliente(object sender, Cliente cliente)
     {
         this.ClienteLogged = cliente;
     }

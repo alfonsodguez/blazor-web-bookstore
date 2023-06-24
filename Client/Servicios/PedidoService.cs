@@ -38,6 +38,7 @@ namespace bookstore.Client.Servicios
                     LibroPedidoId = libro.LibroId,
                     ItemPedidoId = Guid.NewGuid().ToString()
                 });
+
                 this._itemsPedidoSubject.OnNext(this._listaItems);
             }
         }

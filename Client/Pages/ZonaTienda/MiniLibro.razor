@@ -1,5 +1,5 @@
-﻿@inject NavigationManager navigate
-@inject IPedidoService pedidoSrv
+﻿@inject NavigationManager _navigate
+@inject IPedidoService _pedidoSrv
 
 <div class="card mb-3">
     <div class="row g-0">
@@ -31,7 +31,7 @@
 
     protected void ComprarLibro()
     {
-        this.pedidoSrv.AñadirLibroAlCarrito(this.LibroAPintar, 1);
-        this.navigate.NavigateTo("/Tienda/MostrarPedido/");
+        this._pedidoSrv.AñadirLibroAlCarrito(this.LibroAPintar, 1);
+        this_.navigate.NavigateTo("/Tienda/MostrarPedido/");
     }
 }

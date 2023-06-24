@@ -51,31 +51,34 @@ namespace bookstore.Server.Controllers
                 Microsoft.AspNetCore.Identity.SignInResult checkLogin = await this._siginManager.PasswordSignInAsync(cliente, password, true, false);
                 if (checkLogin.Succeeded)
                 {
-                    Pedido newPedido = new Pedido
-                    {
-                        ClienteId = cliente.Id,
-                        ElementosPedido = null,
-                        EstadoPedido = "pedido nuevo",
-                        FechaPedido = DateTime.Now,
-                        GastosEnvio = 2,
-                        PedidoId = Guid.NewGuid().ToString(),
-                        SubTotalPedido = 0,
-                        TotalPedido = 0
-                    };
+                    String clienteId = cliente.Id;
+                    String userName = cliente.UserName;
 
+                    Cliente.Credenciales publicCredenciales = new Cliente.Credenciales { Email = email, Login = userName};
+                    
                     List<Direccion> direcciones = this._db.Direcciones
-                        .Where((Direccion direccion) => direccion.ClienteId == cliente.Id)
+                        .Where((Direccion direccion) => direccion.ClienteId == clienteId)
                         .ToList<Direccion>();
 
-                    Cliente.Credenciales publicCredenciales = new Cliente.Credenciales { Email = email, Login = cliente.UserName };
-
+                    Pedido newPedido = new Pedido
+                    {
+                        ClienteId = clienteId,
+                        PedidoId = Guid.NewGuid().ToString(),
+                        Estado = "pendiente",
+                        Fecha = DateTime.Now,
+                        GastosEnvio = 2,
+                        SubTotal= 0,
+                        Total = 0
+                        ElementosPedido = new List<String>(),
+                    };
+s
                     Cliente infoCliente = new Cliente
                     {
-                        Apellidos = cliente.Apellidos,
+                        ClienteId = clienteId,
                         NIF = cliente.NIF,
                         Nombre = cliente.Nombre,
-                        TelefonoContacto = cliente.PhoneNumber,
-                        ClienteId = cliente.Id,
+                        Apellidos = cliente.Apellidos,
+                        Telefono = cliente.PhoneNumber,
                         CredencialesCliente = publicCredenciales,
                         ImagenAvatar = cliente.ImagenAvatar ?? "",
                         Descripcion = "",
@@ -99,8 +102,8 @@ namespace bookstore.Server.Controllers
             {
                 return new RESTMessage
                 {
-                    Mensaje = "Email invalido o sin confirmar o credenciales incorrectas",
-                    Errores = new List<String> { "Email invalido", "Emsail sin confirmar", "Credenciales incorrectas" },
+                    Mensaje = "Credenciales incorrectas",
+                    Errores = new List<String> { "Email invalido", "Emsail sin confirmar" },
                     DatosCliente = null,
                     Token = null,
                     Datos = null
@@ -121,34 +124,33 @@ namespace bookstore.Server.Controllers
                 NIF = datosCliente.NIF,
                 Email = email,
                 UserName = datosCliente.CredencialesCliente.Login,
-                PhoneNumber = datosCliente.TelefonoContacto
+                PhoneNumber = datosCliente.Telefono
             };
-            IdentityResult registroCliente = await this._userManager.CreateAsync(nuevoCliente, password);
 
+            IdentityResult registroCliente = await this._userManager.CreateAsync(nuevoCliente, password);
             if (registroCliente.Succeeded)
             {
                 ClienteIdentity cliente = await this._userManager.FindByEmailAsync(email);
 
                 Direccion direccion = new Direccion
                 {
+                    ClienteId = cliente.Id
                     DireccionId = Guid.NewGuid().ToString(),
                     Calle = datosCliente.ListaDirecciones[0].Calle,
                     CP = datosCliente.ListaDirecciones[0].CP,
-                    CodPro = datosCliente.ListaDirecciones[0].CodPro,
-                    CodMun = datosCliente.ListaDirecciones[0].CodMun,
+                    CodProvincia = datosCliente.ListaDirecciones[0].CodProvincia,
+                    CodMunicipio = datosCliente.ListaDirecciones[0].CodMunicipio,
                     EsPrincipal = datosCliente.ListaDirecciones[0].EsPrincipal,
-                    TipoDireccion = "Avd.",
-                    ClienteId = cliente.Id
+                    Tipo = datosCliente.ListaDirecciones[0].Tipo,
                 };
 
                 this._db.Direcciones.Add(direccion);
                 await this._db.SaveChangesAsync();
-
-                await this.EnviarEmailRegistroAsync(cliente);
+                await this.EnviarEmailRegistro(cliente);
 
                 return new RESTMessage
                 {
-                    Mensaje = "Registro OK, se ha enviado Email de confirmacion",
+                    Mensaje = "Registro OK, email de confirmacion enviado",
                     Errores = null,
                     DatosCliente = null,
                     Token = null,
@@ -170,9 +172,9 @@ namespace bookstore.Server.Controllers
         public async Task<IActionResult> ConfirmarRegistro([FromQuery] String idCliente, [FromQuery] String token)
         {
             ClienteIdentity cliente = await this._userManager.FindByIdAsync(idCliente);
-            IdentityResult comprobacionToken = await this._userManager.ConfirmEmailAsync(cliente, token);
+            IdentityResult validarToken = await this._userManager.ConfirmEmailAsync(cliente, token);
 
-            if (comprobacionToken.Succeeded)
+            if (validarToken.Succeeded)
             {
                 string urlLogin = "https://localhost:44351/Cliente/Login";
                 return Redirect(urlLogin);
@@ -181,7 +183,7 @@ namespace bookstore.Server.Controllers
             return Ok(new RESTMessage
             {
                 Mensaje = "Confirmacion Email fallida",
-                Errores = new List<String> { "Activación del email por Identity fallida" },
+                Errores = new List<String> { "Activación de email mediante Identity fallida" },
                 Datos = null,
                 DatosCliente = null,
                 Token = null
@@ -211,10 +213,14 @@ namespace bookstore.Server.Controllers
             return new JwtSecurityTokenHandler().WriteToken(token);
         }
 
-        private async Task EnviarEmailRegistroAsync(ClienteIdentity cliente)
+        private async Task EnviarEmailRegistro(ClienteIdentity cliente)
         {
             string token = await this._userManager.GenerateEmailConfirmationTokenAsync(cliente);
-            string urlEmail = Url.RouteUrl("activarCuenta", new { idcliente = cliente.Id, token = token }, "https", "localhost:44351");
+            string ruta = "activarCuenta";
+            string protocolo = "https";
+            string host = "localhost:44351";
+            string metadata = new { idcliente = cliente.Id, token = token };
+            string urlEmail = Url.RouteUrl(ruta, metadata, protocolo, host);
             string mensaje = $@"
                         <h3><strong>Se ha registrado correctamente en Agapea.com</strong></h3>
                         <br>Haz click en <a href='{urlEmail}'>{urlEmail}</a> para activar tu cuenta";

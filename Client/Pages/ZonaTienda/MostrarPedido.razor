@@ -75,9 +75,9 @@
         this._pedidoSrv
             .DevolverItemsPedido()
             .ForEach(async (ItemPedido item) => {
-                Libro _LibroRecuperado = await this._petServicios.DevolverLibro(item.LibroPedidoId);
+                Libro LibroRecuperado = await this._petServicios.DevolverLibro(item.LibroPedidoId);
                 this.ListaItemsPedido.Add(new Tuple<Libro, int>(_LibroRecuperado, item.Cantidad));
-                this.SubTotal += _LibroRecuperado.Precio * item.Cantidad;
+                this.SubTotal += LibroRecuperado.Precio * item.Cantidad;
                 StateHasChanged();
             });
     }
@@ -85,13 +85,13 @@
     private void ModificarItem(Tuple<Libro, int> item) {
         if (item.Item2 == 0)
         {
-            this.ListaItemsPedido.Remove(this.ListaItemsPedido.Find((Tuple<Libro,int> itemLista)=>itemLista.Item1.LibroId==item.Item1.LibroId));
+            this.ListaItemsPedido.Remove(this.ListaItemsPedido.Find((Tuple<Libro,int> itemLista) => itemLista.Item1.LibroId == item.Item1.LibroId));
             this._pedidoSrv.EliminarLibroDelCarrito(item.Item1);
         }
         else
         {
-            int _pos = this.ListaItemsPedido.FindIndex((Tuple<Libro, int> itemLista) => itemLista.Item1.LibroId == item.Item1.LibroId);
-            this.ListaItemsPedido[_pos] = item;
+            int pos = this.ListaItemsPedido.FindIndex((Tuple<Libro, int> itemLista) => itemLista.Item1.LibroId == item.Item1.LibroId);
+            this.ListaItemsPedido[pos] = item;
             this._pedidoSrv.ModificarLibroDelCarrito(item.Item1, item.Item2);
         }
         this.SubTotal = this.ListaItemsPedido.Sum((Tuple<Libro, int> item) => item.Item1.Precio * item.Item2);

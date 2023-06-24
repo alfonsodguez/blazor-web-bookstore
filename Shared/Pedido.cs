@@ -8,11 +8,11 @@ namespace bookstore.Shared
         #nullable enable
         public String PedidoId { get; set; }
         public String? ClienteId { get; set; }
-        public DateTime FechaPedido { get; set; }
-        public String EstadoPedido { get; set; }
-        public Decimal SubTotalPedido { get; set; }
+        public String Estado { get; set; }
+        public DateTime Fecha { get; set; }
         public Decimal GastosEnvio { get; set; }
-        public Decimal TotalPedido { get; set; }
+        public Decimal SubTotal { get; set; }
+        public Decimal Total { get; set; }
         #nullable disable
 
         public List<String> ElementosPedido { get; set; }

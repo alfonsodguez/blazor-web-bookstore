@@ -41,7 +41,7 @@
                                             {
                                                 @foreach (Provincia provincias in this.provincias)
                                                 {
-                                                    <option value="@provincias.CodPro">@provincias.NombreProvincia</option>
+                                                    <option value="@provincias.CodProvincia">@provincias.Nombre</option>
                                                 }
 
                                             }
@@ -49,13 +49,13 @@
                                     </div>
                                     <div class="form-group col-md-6">
                                         <label for="inputLocalidad"><strong>Localidad</strong></label>
-                                        <InputSelect disabled="@(this.provincias == null)" id="inputLocalidad" @bind-Value="@this.nuevaDireccion.CodMun" class="form-control">
+                                        <InputSelect disabled="@(this.provincias == null)" id="inputLocalidad" @bind-Value="@this.nuevaDireccion.CodMunicipio" class="form-control">
                                             <option value="0" selected>Elige localidad...</option>
                                             @if (this.municipios != null)
                                             {
                                                 @foreach (Municipio municipio in this.municipios)
                                                 {
-                                                    <option value="@municipio.CodMun.ToString()">@municipio.NombreMunicipio</option>
+                                                    <option value="@municipio.CodMunicipio.ToString()">@municipio.Nombre</option>
                                                 }
 
                                             }

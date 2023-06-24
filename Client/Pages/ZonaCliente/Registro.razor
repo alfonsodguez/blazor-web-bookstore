@@ -89,20 +89,20 @@
                                     {
                                         @foreach (Provincia provincia in this.provincias)
                                         {
-                                            <option value="@provincia.CodPro">@provincia.NombreProvincia</option>
+                                            <option value="@provincia.CodProvincia">@provincia.Nombre</option>
                                         }
                                     }
                                 </InputSelect>
                             </div>
                             <div class="form-group col-md-6">
                                 <label for="inputLocalidad"><strong>Localidad</strong></label>
-                                <InputSelect id="inputLocalidad" class="form-control" disabled="@(this.provincias == null)" @bind-Value="@cliente.ListaDirecciones[0].CodMun">
+                                <InputSelect id="inputLocalidad" class="form-control" disabled="@(this.provincias == null)" @bind-Value="@cliente.Direcciones[0].CodMunicipio">
                                     <option value="0" selected>Elige localidad...</option>
                                     @if (this.municipios != null)
                                     {
                                         @foreach (Municipio municipio in this.municipios)
                                         {
-                                            <option value="@municipio.CodMun">@municipio.NombreMunicipio</option>
+                                            <option value="@municipio.CodMunicipio">@municipio.Nombre</option>
                                         }
                                     }
                                 </InputSelect>
@@ -136,7 +136,7 @@
 
     protected override async Task OnInitializedAsync()
     {
-        this.cliente.ListaDirecciones.Add(new Direccion());
+        this.cliente.Direcciones.Add(new Direccion());
         this.provincias = await this._rest.DevolverProvincias();
     }
 

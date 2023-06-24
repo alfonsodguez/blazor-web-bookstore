@@ -4,8 +4,8 @@ namespace bookstore.Shared
 {
     public class Provincia
     {
-        public int CodPro { get; set; }
+        public int CodProvincia { get; set; }
         #nullable enable
-        public String? NombreProvincia { get; set; }
+        public String? Nombre { get; set; }
     }
 }

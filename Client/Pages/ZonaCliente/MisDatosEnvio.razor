@@ -1,5 +1,5 @@
 ﻿@page "/Cliente/Panel/MisDatosEnvio"
-@inject NavigationManager navigate
+@inject NavigationManager _navigate
 @inject IJSRuntime _js
 
 <div class="container">
@@ -18,7 +18,7 @@
                 </div>
                 <div class="col-md-4"></div>
                 <div class="col-md-4">
-                    <button @ref="@nuevaDir" @onclick="@(()=>this.Modal.Open())" type="button" class="btn btn-primary">CREAR NUEVA DIRECCION</button>
+                    <button @ref="@nuevaDireccion" @onclick="@(()=>this.Modal.Open())" type="button" class="btn btn-primary">CREAR NUEVA DIRECCION</button>
                     <FormModalCrearDireccion @ref="@Modal"></FormModalCrearDireccion>
                 </div>
             </div>
@@ -44,6 +44,6 @@
 
 
 @code {
-    private ElementReference nuevaDir; 
+    private ElementReference nuevaDireccion; 
     private FormModalCrearDireccion Modal { get; set; }
 }

@@ -14,6 +14,6 @@ namespace bookstore.Shared
         public int NumeroPaginas { get; set; }
         public Decimal Precio { get; set; }
         public String FicheroImagen { get; set; }
-        public int IdMateria { get; set; }
+        public int MateriaId { get; set; }
     }
 }

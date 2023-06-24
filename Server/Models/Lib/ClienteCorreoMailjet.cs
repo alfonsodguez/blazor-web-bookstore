@@ -9,20 +9,20 @@ namespace bookstore.Server.Models
 {
     public class ClienteCorreoMAILJET : IClienteEmail
     {
-        private IOptions<ConfigMailjet> _configServerMailjet;
+        private IOptions<ConfigMailjet> _configMailjet;
 
         public ClienteCorreoMAILJET(IOptions<ConfigMailjet> configServerMailject)
         {
-            this._configServerMailjet = configServerMailject;
+            this._configMailjet = configSeverMailject;
         }
 
 
         #nullable enable
         public void EnviarEmail(string destinatario, string asunto, string cuerpo, string? nombreAdjunto)
         {
-            String ServerName = this._configServerMailjet.Value.ServerName;
-            String ApiKey = this._configServerMailjet.Value.APIKey;
-            String SecretKey = this._configServerMailjet.Value.SecretKey;
+            String ServerName = this._configMailjet.Value.ServerName;
+            String ApiKey = this._configMailjet.Value.APIKey;
+            String SecretKey = this._configMailjet.Value.SecretKey;
 
             SmtpClient clienteSMTP = new SmtpClient();
             clienteSMTP.Host = ServerName;

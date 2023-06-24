@@ -15,7 +15,7 @@
 @code {
     public async ValueTask DisposeAsync()
     {
-        //borramos indexedDB cuando se cierra la app
-        await this._storageSrv.DeleteIndexedDB();
+        // borramos indexedDB cuando se cierra la app
+        await this._storageSrv.EliminarIndexedDB();
     }
 }

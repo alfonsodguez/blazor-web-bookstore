@@ -10,11 +10,11 @@ namespace bookstore.Client.Servicios
         public event EventHandler<Cliente> ClienteRecuperadoIndexedDBEvent;
         public event EventHandler<List<Tuple<Libro, int>>> ItemsRecuperadoIndexedDBEvent;
 
-        Task DeleteIndexedDB();
-        Task<bool> EstaClienteLogueado();
-        Task DevuelveClienteDelStorage();
-        Task DevuelveItemsPedidoDelStorage();
-        Task InsertaClienteJWTEnStorage(Cliente cliente, String jwt);
-        Task InsertaItemtsPedidoEnStorage(List<Tuple<Libro, int>> listaItems);
+        Task EliminarIndexedDB();
+        Task<bool> EstarClienteLogueado();
+        Task DevolverClienteDelStorage();
+        Task DevolverItemsPedidoDelStorage();
+        Task InsertarClienteJWTEnStorage(Cliente cliente, String jwt);
+        Task InsertarItemtsPedidoEnStorage(List<Tuple<Libro, int>> listaItems);
     }
 }

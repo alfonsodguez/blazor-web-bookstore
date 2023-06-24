@@ -71,7 +71,7 @@
                         <h5><strong>Subtotal:</strong></h5>
                     </div>
                     <div class="col-2">
-                        <h5><span style="color:red"> @this.cliente.PedidoActual.SubTotalPedido €</span></h5>
+                        <h5><span style="color:red"> @this.cliente.PedidoActual.SubTotal €</span></h5>
                     </div>
                 </div>
                 <div class="row">
@@ -89,7 +89,7 @@
                         <h4><strong>Total a pagar: </strong></h4>
                     </div>
                     <div class="col-2">
-                        <h4><span style="color:red"><strong> @(this.cliente.PedidoActual.SubTotalPedido + this.cliente.PedidoActual.GastosEnvio ) €</strong></span></h4>
+                        <h4><span style="color:red"><strong> @(this.cliente.PedidoActual.SubTotal + this.cliente.PedidoActual.GastosEnvio ) €</strong></span></h4>
                     </div>
                 </div>
             </div>
@@ -114,25 +114,25 @@
 
     protected override async Task OnInitializedAsync()
     {
-        this._storageSrv.ItemsRecuperadoIndexedDBEvent += this.RecuperaItemsPedidoFromStorage;
-        await this._storageSrv.DevuelveItemsPedidoDelStorage();
+        this._storageSrv.ItemsRecuperadoIndexedDBEvent += this.RecuperarItemsPedidoFromStorage;
+        await this._storageSrv.DevolverItemsPedidoDelStorage();
     }
 
     protected override void OnParametersSet()
     {
-        this.DireccionActual = this.cliente.ListaDirecciones.Where((Direccion direc) => direc.EsPrincipal == true).Single<Direccion>();
+        this.DireccionActual = this.cliente.Direcciones.Where((Direccion direcccion) => direccion.EsPrincipal == true).Single<Direccion>();
         StateHasChanged();
     }
 
-    private void RecuperaItemsPedidoFromStorage(object sender, List<Tuple<Libro, int>> lista)
+    private void RecuperarItemsPedidoFromStorage(object sender, List<Tuple<Libro, int>> listaLibros)
     {
-        this.ListaItemsPedido = lista;
-        this.cliente.PedidoActual.SubTotalPedido = lista.Sum((Tuple<Libro, int> itemPedido) => itemPedido.Item1.Precio * itemPedido.Item2);
+        this.ListaItemsPedido = listaLibros;
+        this.cliente.PedidoActual.SubTotal = lista.Sum((Tuple<Libro, int> itemPedido) => itemPedido.Item1.Precio * itemPedido.Item2);
         StateHasChanged();
     }
 
     private void IrPanel() 
     {
-        this._navigate.NavigateTo("/Cliente/Panel/MiPanelInicio");
+        this._navigate.NavigateTo("/Cliente/Panel/MiPanel");
     }
 }

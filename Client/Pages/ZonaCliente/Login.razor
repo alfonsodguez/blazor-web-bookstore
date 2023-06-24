@@ -2,7 +2,7 @@
 @inject IJSRuntime _js
 @inject IRestService _rest
 @inject IStorageService _storage
-@inject NavigationManager navigate
+@inject NavigationManager _navigate
 
 <div class="container">
     <div class="row">
@@ -54,14 +54,14 @@
 
     public async Task LoginCliente()
     {
-        await this._storage.DeleteIndexedDB();
+        await this._storage.EliminarIndexedDB();
 
         RESTMessage checkLogin = await this._rest.LoginCliente(this.credenciales);
         if (checkLogin.Mensaje == "Login success")
         {
-            await this._storage.InsertaClienteJWTEnStorage(checkLogin.DatosCliente, checkLogin.Token);
+            await this._storage.InsertarClienteJWTEnStorage(checkLogin.DatosCliente, checkLogin.Token);
             this.cliente = checkLogin.DatosCliente;
-            this.navigate.NavigateTo("/Tienda/Libros/5");
+            this._navigate.NavigateTo("/Tienda/Libros/5");
         }
     }
 }

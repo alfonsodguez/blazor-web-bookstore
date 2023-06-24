@@ -76,7 +76,7 @@ namespace bookstore.Client.Servicios
 
         public async Task<Libro> DevolverLibro(string idLibro)
         {
-            String urlLibros = "api/RESTTiendaService/RecuperaLibro?idLibro=" + idLibro;
+            String urlLibros = "api/RESTTiendaService/DevolverLibro?idLibro=" + idLibro;
             HttpResponseMessage respuesta = await this._http.GetAsync(urlLibros);
             RESTMessage resultado = JsonSerializer.Deserialize<RESTMessage>(await respuesta.Content.ReadAsStringAsync(), new JsonSerializerOptions { PropertyNamingPolicy = null });
 

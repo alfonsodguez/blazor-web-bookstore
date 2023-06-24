@@ -31,7 +31,7 @@ namespace bookstore.Server.Controllers
                     DatosCliente = null,
                     Errores = null,
                     Token = null,
-                    Mensaje = "Muncipios recuperados ok",
+                    Mensaje = "Muncipios recuperados OK",
                     Datos = municipios
                 };
             }
@@ -39,9 +39,9 @@ namespace bookstore.Server.Controllers
             return new RESTMessage
             {
                 DatosCliente = null,
-                Errores = new List<string> { "Error al recuperar los muncipios correspondientes al codigo de provincia: " + codProvincia },
+                Errores = new List<string> { "Error al recuperar los muncipios correspondientes al código de provincia: " + codProvincia },
                 Token = null,
-                Mensaje = "Municipios recuperados ko",
+                Mensaje = "Municipios recuperados KO",
                 Datos = null
             };
         }
@@ -58,7 +58,7 @@ namespace bookstore.Server.Controllers
                     DatosCliente = null,
                     Errores = null,
                     Token = null,
-                    Mensaje = "Provincias recuperadas ok",
+                    Mensaje = "Provincias recuperadas OK",
                     Datos = provincias
                 };
             }
@@ -66,7 +66,7 @@ namespace bookstore.Server.Controllers
             return new RESTMessage
             {
                 DatosCliente = null,
-                Errores = new List<string> { "Error al recuperar las provincias de la bd" },
+                Errores = new List<string> { "Error al recuperar las provincias" },
                 Token = null,
                 Mensaje = "Provincias recuperadas KO",
                 Datos = null
